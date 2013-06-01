@@ -1,0 +1,82 @@
+{
+    "comments":"RSS Control Management",
+    "version":"2.0",
+
+    // enable/disable debug output - default is 'false'
+    "debug": true,
+
+    "DB":{
+        // databases by name.
+        // "default" is used for REST queries that specify no database.
+        "default": {
+            // database vendor.
+            "type":"sqlite3",
+            // vendor specific connection details
+            "filename":"/var/opt/npi/rsscontrol.db"
+        }
+    }, 
+ 
+    // REST specification
+    "REST":{
+        // REST queries are mapped by METHOD/path syntax
+        "GET/foobar":{
+            // database to use - is 'default' if not specified
+            "database":"default",
+
+            // query is a SQL string with embedded params
+            "query":"select * from users where username = ?",
+
+            // params to map to the query - array strings are used for simple positional args
+            "params":["request.username"]
+        },
+    
+        "GET/foobar":{
+            "database":"default",
+            "query":"select * from users where username = ?",
+        
+            // params can be specified with more details if needed
+            "params":[
+                // parameter at posiiton 0
+                {
+                    // paramter name in the SQL query
+                    "name": "username",
+
+                    // input path of the data
+                    "path":"request.username",
+
+                    // default value if the path cannot be found
+                    "default": null,
+
+                    // type validation - defaults to as-is
+                    "type": "string",
+
+                    // data validation
+                    "validation": "[a-zA-Z-]*"
+                }
+            ]
+        },
+        "GET/foobar":{
+            "database":"default",
+            "query":"select * from users where username = ?",
+            "params":[
+                // parameters in the PARAMETERS map can be referenced in any REST query
+                "PARAMETERS.username"
+            ]
+        },
+
+        // special data query - map a REST query to the name of the special value
+        // "discovery" - report details about the entire REST service
+        "GET/disco":"discovery"
+    },
+
+    // re-usable parameters 
+    "PARAMETERS":{
+        "username":{
+            "path":"request.username",
+            "default": null,
+            "type": "string",
+            "validation": "[a-zA-Z-]*"
+
+        }
+    }
+}
