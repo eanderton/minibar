@@ -80,8 +80,6 @@ Json::Value getQueryJson(){
 }
 
 void ProcessRequest(){
-    SqlDb db;
-    SqlStatement stmt;
     Config config;
 
     try{
@@ -105,43 +103,28 @@ void ProcessRequest(){
         paramContext["request"] = getRequestJson();
         paramContext["query"] = getQueryJson();
         
+        // prepare the sql query
+        Connection* con = restNode->database->getConnection();
+        con->prepare(restNode->query);
 
         // gather parameters as indicated on the query_node
-        std::vector<Json::Value> arguments;
         for(QueryParameter param: restNode->parameters){ 
             Json::Value value = QueryObject(paramContext,param.path);
-            //TODO: handle positional and named arguments here
-            arguments.push_back(value);
+            if(param.name.empty()){
+                con->bind(value);  // positional
+            }
+            else{
+                con->bind(param.name,value);
+            }
         }
 
-        // prepare the sql query
-        std::string dbFile = QueryObject(paramContext,TokenSet({"DB","filename"})).asString();
-        db.Open(dbFile);
-        stmt.Prepare(db,restNode->query);
-
-        // TODO: test argument set and number of bindings
-        debugPrint("Bind count: %d Arguments: %d",stmt.BindCount(),arguments.size());        
-
-        // bind arguments
-        int column=0;
-        for(Json::Value value: arguments){
-            stmt.Bind(column,value);
-            column++;
-        }
-
-        // run the query and gather data
-        Json::Value rowData;
-        rowData.resize(0);
-        while(stmt.Step()==SQLITE_ROW){
-            rowData.append(stmt.GetRow());
-        }
-
+        Json::Value rowData = con->execute();
+        
         // debug
         logJson(rowData);
 
-        // cleanup 
-        stmt.Finalize();
-        db.Close(); 
+        // cleanup
+        con.close(); 
 
         // send response
         writeString(STATUS_200);

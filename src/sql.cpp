@@ -34,20 +34,8 @@ namespace minibar{
 
 REGISTER_DB(sqlite,SqliteDb::Create);
 
-
-SqliteDb::SqliteDb(){
-}
-
-SqliteDb::~SqliteDb(){
-}
-
-Database* SqliteDb::Create(Json::Value root){
-    return new SqliteDb();
-}
-
-}
-
 ///////// 
+
 SqlException::SqlException(int errcode){
     msg = (const char*)sqlite3_errstr(errcode);
 }
@@ -69,52 +57,46 @@ static void sqlite3_fn(int result){
 
 
 ///////// 
-SqlStatement::SqlStatement(){
+
+SqliteDbConnection::SqliteDbConnection(std::string dbFile){
     handle = NULL;
+    stmt = NULL;
+    bindIndex = 0;
+    sqlite3_fn(sqlite3_open(dbFile.c_str(),&handle));
 }
 
-SqlStatement::~SqlStatement(){
-    if(handle != NULL) Finalize();
+SqliteDbConnection::~SqliteDbConnection(){
+    close();
 }
 
-void SqlStatement::Prepare(SqlDb db,std::string sql){
+void SqlStatement::prepare(std::string query){
     //@breakpoint
     int result;
-    result = sqlite3_prepare_v2(db.handle,sql.data(),sql.length(),&handle,NULL);
+    result = sqlite3_prepare_v2(db,query.data(),query.length(),&stmt,NULL);
     sqlite3_fn(result);
 }
 
-int SqlStatement::BindCount(){
-    return sqlite3_bind_parameter_count(handle);
-}
-
-int SqlStatement::ColumnCount(){
-    return sqlite3_column_count(handle);
-}
-
-void SqlStatement::Bind(int col,Json::Value& value){
+void SqliteDbConnection::bind(int idx,Json::Value value){
     std::string str;
-    int idx = col+1;
-
     switch(value.type()){
     case Json::nullValue: 
-        sqlite3_fn(sqlite3_bind_null(handle,idx));
+        sqlite3_fn(sqlite3_bind_null(stmt,idx));
         break;
     case Json::intValue:     
-        sqlite3_fn(sqlite3_bind_int64(handle,idx,value.asInt()));
+        sqlite3_fn(sqlite3_bind_int64(stmt,idx,value.asInt()));
         break;
     case Json::uintValue:     
-        sqlite3_fn(sqlite3_bind_int64(handle,idx,value.asUInt()));
+        sqlite3_fn(sqlite3_bind_int64(stmt,idx,value.asUInt()));
         break;
     case Json::realValue:     
-        sqlite3_fn(sqlite3_bind_double(handle,idx,value.asDouble()));
+        sqlite3_fn(sqlite3_bind_double(stmt,idx,value.asDouble()));
         break;
     case Json::stringValue:
         str = value.asString();
-        sqlite3_fn(sqlite3_bind_text(handle,idx,str.c_str(),-1,SQLITE_TRANSIENT));
+        sqlite3_fn(sqlite3_bind_text(stmt,idx,str.c_str(),-1,SQLITE_TRANSIENT));
         break;
     case Json::booleanValue:
-        sqlite3_fn(sqlite3_bind_int64(handle,idx,value.asInt()));
+        sqlite3_fn(sqlite3_bind_int64(stmt,idx,value.asInt()));
         break;
     case Json::arrayValue:  
         throw SqlException("Cannot bind column to JSON Array");    
@@ -123,9 +105,20 @@ void SqlStatement::Bind(int col,Json::Value& value){
     }
 }
 
-int SqlStatement::Step(){
-    //debugPrint("handle: %p",handle);
-    int result = sqlite3_step(handle);
+void SqliteDbConnection::bind(Json::Value value){
+    bind(bindIndex+1,value);
+    bindIdex++;
+}
+
+void SqliteDbConnection::bind(std::string name,Json::Value value){
+    int idx = sqlite3_bind_parameter_index(stmt,name.c_str());
+    if(idx != 0){
+        bind(idx,value);
+    }
+}
+
+int SqlStatement::queryStep(){
+    int result = sqlite3_step(stmt);
     switch(result){
         case SQLITE_DONE:
         case SQLITE_BUSY:
@@ -136,20 +129,20 @@ int SqlStatement::Step(){
     }
 }
 
-Json::Value SqlStatement::GetRow(){
+Json::Value SqlStatement::queryGetRow(){
     Json::Value row;
-    for(int i=0; i<ColumnCount(); i++){
-        const char* name = sqlite3_column_name(handle,i);
+    for(int i=0; i<sqlite3_column_count(stmt); i++){
+        const char* name = sqlite3_column_name(stmt,i);
 
-        switch(sqlite3_column_type(handle,i)){
+        switch(sqlite3_column_type(stmt,i)){
         case SQLITE_INTEGER:
-            row[name] = (Json::Int64)sqlite3_column_int64(handle,i);
+            row[name] = (Json::Int64)sqlite3_column_int64(stmt,i);
             break;
         case SQLITE_FLOAT:
-            row[name] = sqlite3_column_double(handle,i);
+            row[name] = sqlite3_column_double(stmt,i);
             break;
         case SQLITE_TEXT:
-            row[name] = (const char*)sqlite3_column_text(handle,i);
+            row[name] = (const char*)sqlite3_column_text(stmt,i);
             break;
         case SQLITE_BLOB:
             throw SqlException("BLOB column data is not supported");
@@ -157,52 +150,50 @@ Json::Value SqlStatement::GetRow(){
             row[name] = Json::Value();
             break;
         default:
-            row[name] = (const char*)sqlite3_column_text(handle,i);
+            row[name] = (const char*)sqlite3_column_text(stmt,i);
             break;
         } 
     }
     return row;
 }
 
-void SqlStatement::Reset(){
-    sqlite3_fn(sqlite3_reset(handle));
+Json::Value SqliteDbConnection::execute(){
+    Json::Value rowData;
+    rowData.resize(0);
+    while(queryStep()==SQLITE_ROW){
+        rowData.append(queryGetRow());
+    }
+    return rowData;
 }
 
-void SqlStatement::Finalize(){
+void SqliteDbConnection::close(){
     if(handle != NULL){
-        sqlite3_finalize(handle);
+        sqlite3_finalize(stmt);
         handle = NULL;
     }
-}
-
-
-///////////
-SqlDb::SqlDb(){
-    handle = NULL;
-}
-SqlDb::~SqlDb(){
-    if(handle != NULL) Close();
-}
-
-const char* SqlDb::ErrorMessage(){
-    if(handle != NULL){
-        return sqlite3_errmsg(handle);
-    }
-}
-
-void SqlDb::Open(const std::string filename){
-    sqlite3_fn(sqlite3_open(filename.c_str(),&handle));
-}
-
-
-void SqlDb::Close(){
     if(handle != NULL){
         sqlite3_close_v2(handle);
         handle = NULL;
-    }
+    } 
 }
 
+///////////
+SqliteDb::SqliteDb(std::string dbFile){
+    this->dbFile = dbFile;
+}
 
-sqlite3* SqlDb::operator&(){
-    return handle;
+SqliteDb::~SqliteDb(){
+    //do nothing
+}
+
+Connection* SqliteDb::getConnection(){
+    return new SqliteDbConnection(dbFile);
+}
+
+Database* SqliteDb::Create(Json::Value root){
+    std::string dbFile = root["filename"];
+    dbFile = QueryObject(paramContext,dbFile).asString();
+    return new SqliteDb(dbFile);
+}
+
 }

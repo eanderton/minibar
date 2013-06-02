@@ -49,8 +49,6 @@ public:
     static Database* Create(Json::Value root);
 };
 
-}
-
 
 // exception class for sqlite3
 struct SqlException: public std::exception{
@@ -61,31 +59,35 @@ struct SqlException: public std::exception{
     const char * what () const throw ();
 };
 
-
-struct SqlDb{
+class SqliteDbConnection: public Connection{
+    sqlite3_stmt* stmt;
     sqlite3* handle;
+    int bindIndex;
     
-    SqlDb();
-    ~SqlDb();
-    const char* ErrorMessage();
-    void Open(const std::string filename);
-    void Close();
-    sqlite3* operator&();
+    SqliteDbConnection(std::string dbFile);
+    ~SqliteDbConnection();
+   
+    void bind(int idx,Json::Value value);
+    int queryStep();
+    Json::Value queryGetRow();
+
+public:
+    virtual void prepare(std::string query);
+    virtual void bind(Json::Value value);
+    virtual void bind(std::string name,Json::Value value);
+    virtual Json::Value execute();
+    virtual void close();
 };
 
-struct SqlStatement{
-    sqlite3_stmt* handle;
+class SqliteDb: public Database{
+    std::string dbFile;
 
-    SqlStatement();
-    ~SqlStatement();
-    void Prepare(SqlDb db,std::string sql);
-    int BindCount();
-    int ColumnCount();
-    void Bind(int col,Json::Value& value);
-    int Step();
-    Json::Value GetRow();
-    void Reset();
-    void Finalize();
+    SqliteDb(std::string dbFile);
+    ~SqliteDb();
+public:
+    virtual Connection* getConnection();
+
+    static Database* Create(Json::Value root)
 };
 
-
+}

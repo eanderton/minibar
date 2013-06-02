@@ -37,6 +37,15 @@ using namespace std;
 
 namespace minibar {
 
+class Connection {
+public:
+    virtual void prepare(std::string query) = 0;
+    virtual void bind(Json::Value value) = 0;
+    virtual void bind(std::string name,Json::Value value) = 0;
+    virtual Json::Value execute() = 0;
+    virtual void close() = 0; 
+};
+
 class Database{
 public:
     typedef std::function<Database*(Json::Value)> CreateFn;
@@ -46,7 +55,10 @@ public:
     static bool registerDb(std::string name,CreateFn fn){
         registry[name] = fn;
     }
+    
+    virtual Connection* getConnection() = 0;
 };
+
 
 #define REGISTER_DB(name,fn) bool __registeredDb_##name = Database::registerDb(#name,fn)
 
