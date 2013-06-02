@@ -28,56 +28,26 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-
-#include <vector>
-#include <string>
 #include "jsoncpp.h"
+#include <string>
+#include <map>
+#include <functional>
 
 using namespace std;
 
-namespace minibar{
+namespace minibar {
 
-struct MinibarException : public std::exception{
-    const char* text;
+class Database{
+public:
+    typedef std::function<Database*(Json::Value)> CreateFn;
+    static std::map<std::string,CreateFn> registry;
+    static Database* FactoryCreate(Json::Value root);
 
-    MinibarException(std::string& text){
-        text = text.c_str();
-    }
-    MinibarException(std::string text){
-        text = text.c_str();
-    }
-    MinibarException(const char *text){
-        this->text = text;
-    }
-    const char* what() const throw(){
-        return text;
+    static bool registerDb(std::string name,CreateFn fn){
+        registry[name] = fn;
     }
 };
 
-
-typedef vector<string> TokenSet;
-typedef vector<string>::iterator TokenSetIter;
-
-TokenSet tokenize(const string& str,const string& delimiters = " ",bool trimEmpty = false);
-
-
-struct QueryException: public std::exception{
-    const char* text;
-    TokenSet query;
-    int errterm;
-
-    QueryException(const char* text,TokenSet query,int errterm);
-    const char* what() const throw();
-};
-
-
-Json::Value QueryObject(const Json::Value root,const TokenSet& query);
-Json::Value QueryObject(const Json::Value root,const std::string& query);
-
-void ParseHex(const char ch,int* accumulator);
-
-#ifdef UNITTEST
-void utilsUnittest();
-#endif
+#define REGISTER_DB(name,fn) bool __registeredDb_##name = Database::registerDb(#name,fn)
 
 }

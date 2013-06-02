@@ -28,27 +28,36 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-#include "fcgi_config.h"
-#include "sql.h"
-#include "fcgiapp.h"
 #include "jsoncpp.h"
+#include <string>
+#include <exception>
 
-#include "config.h"
+using namespace std;
 
 namespace minibar{
 
-//TODO: remove these 
-extern FCGX_Stream *inStream, *outStream, *errStream;
-extern FCGX_ParamArray envp;
+// externs for frontend - to be defined elsewhere
+
+extern std::string getRestTarget();
+extern void logPrint(const char* format,...);
+extern void logString(std::string str);
+extern void writeString(std::string str);
+extern std::string getConfigFilename();
+extern std::string getRequestContent();
+extern std::string getQueryString();
+extern std::string getRestTarget();
+extern void logException(const std::exception& ex);
+extern void logException(const std::string& ex);
+
+// prototypes
+
+void ProcessRequest();
 
 
-void Init();
-void Cleanup();
-int Accept();
-
-
-#ifdef UNITTEST
-void coreUnittest();
+#ifdef DEBUG
+#define debugPrint(...) logPrint(__VA_ARGS__)
+#else
+#define debugPrint(...)
 #endif
 
 }

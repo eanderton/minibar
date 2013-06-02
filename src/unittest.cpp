@@ -46,9 +46,6 @@ void unittest(){
     cout << "minibar::utilsUnittest()" << endl;
     utilsUnittest();
     
-    cout << "minibar::coreUnittest()" << endl;
-    coreUnittest();
-    
     cout << "Unittests complete." << endl;
 }
 

@@ -41,12 +41,6 @@ either expressed or implied, of the FreeBSD Project.
 
 namespace minibar{
 
-const char* STATUS_200 = "Status: 200 OK\r\nContent-type: application/json\r\n\r\n";
-const char* STATUS_400 = "Status: 400 Bad Request\r\nContent-type: application/json\r\n\r\n";
-const char* STATUS_401 = "Status: 401 Unauthorized\r\nContent-type: application/json\r\n";
-const char* STATUS_405 = "Status: 405 Method Not Allowed\r\n";
-const char* STATUS_500 = "Status: 500 Internal Server Error\r\nContent-type: application/json\r\n\r\n";
-
 #define BUFFER_SIZE 1024
 
 std::string FCGX_ReadString(FCGX_Stream* stream){
@@ -84,26 +78,8 @@ void WriteJson(Json::Value value,FCGX_Stream* stream){
 #define DebugPrint(...) LogPrint(__VA_ARGS__)
 
 
-// loads config file from the filename specified by the web server
-Json::Value LoadConfig(){
-    char* filename = FCGX_GetParam("SCRIPT_FILENAME",envp);
-
-    Json::Value root;
-    Json::Reader reader;
-
-    std::ifstream inf(filename);
-    std::string data((std::istreambuf_iterator<char>(inf)), 
-    std::istreambuf_iterator<char>());
-
-    if(!reader.parse(data,root,false)){
-        throw MinibarException(reader.getFormattedErrorMessages());
-    }
-
-    return root;
-}
-
 // adds the request content envelope (json) to the root doc object
-Json::Value GetRequestContent(){
+Json::Value getRequestContent(){
     Json::Reader reader;
     Json::Value request;
 
@@ -121,77 +97,9 @@ Json::Value GetRequestContent(){
     return request;
 }
 
-char hex_lookup[256] = {
-    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-     0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
-    -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
-    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
-};
-
-void ParseHex(const char ch,int* accumulator){
-    int value = hex_lookup[ch];
-    if(value == -1){
-        throw MinibarException("Invalid character in query string hex expression");
-    }
-    *accumulator = (*accumulator<<4) | value;
-}
-
-enum{ KEY, VALUE };
-
-Json::Value GetQueryString(){
-    Json::Value result(Json::ValueType::objectValue);
+Json::Value getQueryString(){
     char* query = FCGX_GetParam("QUERY_STRING",envp);
-    int state = KEY;
-    char* p = query;
-    std::string key,value;
-    int i;
-
-    // bail out if there's no query string
-    if(p == NULL || *p == '\0') return result;
-
-    key.reserve(20);
-    value.reserve(20);
-
-    while(*p != '\0'){
-        switch(*p){
-        case '=':
-            state = VALUE;
-            key = value;
-            value.clear();
-            break;
-        case '&':
-            DebugPrint("%s=%s",key.c_str(),value.c_str());
-            result[key] = value;
-            key.clear();
-            value.clear();
-            state = KEY;
-            break;
-        case '%':
-            i = 0;
-            ParseHex(*(++p),&i); //TODO: handle EOF here
-            ParseHex(*(++p),&i);
-            value += (char)i;
-            break;
-        case '+':
-            value += ' ';
-            break;
-        default:
-            value += *p;
-        }
-        p++;
-    }
-    if(state == VALUE){
-        // finish off the k/v pair
-        result[key] = value;
-    }
-    else{
-        result[value] = Json::Value();
-    }
-    return result;
+    return parseQueryString(query);
 }
 
 std::string getRestTarget(){
@@ -216,7 +124,9 @@ void ProcessRequest(){
  
         // compose the query path and get the query_node indicated by the path
         Json::Value pathValues; 
-        Json::Value queryNode = config.getRestNode(getRestTarget(),pathValues);         
+        RestNode* restNode = config.getRestNode(getRestTarget(),pathValues);         
+
+        //TODO: auth/auth here
 
         // configure parameter evaluation context
         Json::Value paramContext;
@@ -225,32 +135,19 @@ void ProcessRequest(){
         paramContext["request"] = GetRequestContent();
         paramContext["query"] = GetQueryString();
         
-/*
-    TODO
-    6. if the query node specifies authRoles:
-        6a: discover and parse out the authToken
-        6b: verify that the user has a valid role for this query
-*/
 
-        // 7. gather parameters as indicated on the query_node
+        // gather parameters as indicated on the query_node
         std::vector<Json::Value> arguments;
-        Json::Value paramsNode = queryNode["params"];
-        if(paramsNode.isArray()){
-            for(int i; i<paramsNode.size(); i++){
-                Json::Value value = paramsNode[i];
-                //TODO: trap fault here to signal back to user/developer
-                std::string queryPath = value.asString();
-                value = QueryObject(paramContext,queryPath);
-                arguments.push_back(value);
-            } 
+        for(QueryParameter param: restNode->parameters){ 
+            Json::Value value = QueryObject(paramContext,param.path);
+            //TODO: handle positional and named arguments here
+            arguments.push_back(value);
         }
 
-        // 8. execute the sql query
+        // execute the sql query
         std::string dbFile = QueryObject(paramContext,TokenSet({"DB","filename"})).asString();
         db.Open(dbFile);
-
-        std::string query = queryNode["query"].asString();
-        stmt.Prepare(db,query);
+        stmt.Prepare(db,restNode->query);
 
         // TODO: test argument set and number of bindings
         LogPrint("Bind count: %d Arguments: %d",stmt.BindCount(),arguments.size());        

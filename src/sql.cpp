@@ -31,7 +31,20 @@ either expressed or implied, of the FreeBSD Project.
 
 
 namespace minibar{
-extern void LogPrint(const char* msg,...);
+
+REGISTER_DB(sqlite,SqliteDb::Create);
+
+
+SqliteDb::SqliteDb(){
+}
+
+SqliteDb::~SqliteDb(){
+}
+
+Database* SqliteDb::Create(Json::Value root){
+    return new SqliteDb();
+}
+
 }
 
 ///////// 
@@ -111,7 +124,7 @@ void SqlStatement::Bind(int col,Json::Value& value){
 }
 
 int SqlStatement::Step(){
-    minibar::LogPrint("handle: %p",handle);
+    //debugPrint("handle: %p",handle);
     int result = sqlite3_step(handle);
     switch(result){
         case SQLITE_DONE:

@@ -108,6 +108,24 @@ Json::Value QueryObject(const Json::Value root,const std::string& query){
     return QueryObject(root,tokenize(query,"."));
 }
 
+char hex_lookup[256] = {
+    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+     0, 1, 2, 3,  4, 5, 6, 7,  8, 9,-1,-1, -1,-1,-1,-1,
+    -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    -1,10,11,12, 13,14,15,-1, -1,-1,-1,-1, -1,-1,-1,-1,
+    -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1, -1,-1,-1,-1
+};
+
+void ParseHex(const char ch,int* accumulator){
+    int value = hex_lookup[ch];
+    if(value == -1){
+        throw MinibarException("Invalid character in query string hex expression");
+    }
+    *accumulator = (*accumulator<<4) | value;
+}
 
 }
 

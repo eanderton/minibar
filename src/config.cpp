@@ -34,56 +34,54 @@ using namespace std;
 
 namespace minibar {
 
+static Json::ValueType getJsonScalarType(string name){
+    if(name.compare("int")==0) return Json::ValueType::intValue;
+    if(name.compare("uint")==0) return Json::ValueType::uintValue;
+    if(name.compare("real")==0) return Json::ValueType::realValue;
+    if(name.compare("string")==0) return Json::ValueType::stringValue;
+    if(name.compare("bool")==0) return Json::ValueType::booleanValue;
+    throw MinibarException("Expected a scalar type expression");
+}
 
-
-struct QueryParameter{
-    std::string name;
-    std::string path;
-    Json::Value defaultValue;
-    Json::ValueType type;
-    std::string validation; // regex
     
-    QueryParameter(Json::Value root){
-        if(root.isObject()){
-            //TODO: force types
-            name = root.get("name",null);
-            path = root["path"]; // required
-            defaultValue = root.get("default",null);
-            type = root.get("type",null);
-            validation = root.get("validation",null);
+QueryParameter::QueryParameter(Json::Value& param){
+    if(param.isObject()){
+        path = param["path"].asString();
+        if(param.isMember("name")){
+            name = param["name"].asString();
         }
-        else if(root.isString())){
-            path = root;
-    //TODO: set defaults
+        if(param.isMember("default")){
+            defaultValue = param["default"].asString();
         }
-        else{
-            throw MinibarException("Parameter config element must be an object or string");
+        if(param.isMember("type")){
+            type = getJsonScalarType(param["type"].asString());
+        }
+        if(param.isMember("validation")){
+            validation = param["validation"].asString();
         }
     }
-};
-
-//TODO: move up and out
-struct RestNode{
-    std::vector<QueryParameter> parameters;
-    std::string query;
-
-    RestNode(Json::Value root){
-        //TODO: can we support a custom/special action here? "special":"schema" ?
-        query = root["query"];
-        Json::Value params = root["params"];
-        for(std::string value: params){
-            parameters.push_back(QueryParameter(value));
-        }    
+    else if(param.isString()){
+        path = param.asString();
+        type = Json::ValueType::stringValue;
     }
-};
-
-//TODO: gonna need a bigger boat
-class Database{
-    static Database FactoryCreate(Json::Value root){
-        return new Database();
+    else{
+        throw MinibarException("Parameter config element must be an object or string");
     }
 }
 
+RestNode::RestNode(Config* config,Json::Value& root){
+    //TODO: can we support a custom/special action here? "special":"schema" ?
+
+    std::string dbName = root.get("database","default").asString();
+    database = config->getDatabase(dbName);
+
+    query = root["query"].asString();
+    
+    Json::Value params = root["params"];
+    for(Json::Value value: params){
+        parameters.push_back(QueryParameter(value));
+    }
+}
 
 Config::Config(){
     clear();
@@ -96,13 +94,18 @@ Config::~Config(){
 void Config::clear(){
     router.clear();
     root = Json::Value::null;
+
+    for(auto pair: databases){
+        delete pair.second;
+    }
+    databases.clear();
 }
 
 Json::Value Config::getRoot(){
     return root;
 }
 
-void Config::loadConfig(char* filename){
+void Config::loadConfig(string filename){
     // load JSON data
     Json::Reader reader;
 
@@ -124,31 +127,35 @@ void Config::loadConfig(char* filename){
     // compile databases
     Json::Value dbNode = root["DB"];
     if(!dbNode.isObject()){
-        throw minibarException("DB config must be an object");
+        throw MinibarException("DB config must be an object");
     }
     for(string key: dbNode.getMemberNames()){
         Json::Value value = dbNode[key];
         databases[key] = Database::FactoryCreate(value);
-    } 
+    }
 
     // compile router
     Json::Value restNode = root["REST"];
     if(!dbNode.isObject()){
-        throw minibarException("REST config must be an object");
+        throw MinibarException("REST config must be an object");
     }
     for(string key: restNode.getMemberNames()){
         Json::Value value = restNode[key];
         TokenSet tokens = tokenize(key,"/");
 
         router.addRoute(tokens,routes.size());
-        routes.push_back(RestNode(value));
+        routes.push_back(RestNode(this,value));
     }
 }
 
-// flip around to eval with json query eval context
-Json::Value Config::getRestNode(string path,Json::Value& pathValues){
+Database* Config::getDatabase(string name){
+    return databases[name];
+}
+
+
+RestNode* Config::getRestNode(string path,Json::Value& pathValues){
     int idx = router.matchRoute(tokenize(path,"/"),pathValues);
-    return routes[idx];
+    return &(routes[idx]);
 }
 
 

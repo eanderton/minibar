@@ -35,7 +35,22 @@ either expressed or implied, of the FreeBSD Project.
 #include <vector>
 
 #include "sqlite3.h"
-#include "json/json.h"
+#include "jsoncpp.h"
+#include "database.h"
+
+using namespace std;
+
+namespace minibar {
+
+class SqliteDb: public Database{
+public:
+    SqliteDb();
+    ~SqliteDb();
+    static Database* Create(Json::Value root);
+};
+
+}
+
 
 // exception class for sqlite3
 struct SqlException: public std::exception{

@@ -28,56 +28,16 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-
-#include <vector>
-#include <string>
 #include "jsoncpp.h"
-
-using namespace std;
 
 namespace minibar{
 
-struct MinibarException : public std::exception{
-    const char* text;
+extern const char* STATUS_200;
+extern const char* STATUS_400;
+extern const char* STATUS_401;
+extern const char* STATUS_405;
+extern const char* STATUS_500;
 
-    MinibarException(std::string& text){
-        text = text.c_str();
-    }
-    MinibarException(std::string text){
-        text = text.c_str();
-    }
-    MinibarException(const char *text){
-        this->text = text;
-    }
-    const char* what() const throw(){
-        return text;
-    }
-};
-
-
-typedef vector<string> TokenSet;
-typedef vector<string>::iterator TokenSetIter;
-
-TokenSet tokenize(const string& str,const string& delimiters = " ",bool trimEmpty = false);
-
-
-struct QueryException: public std::exception{
-    const char* text;
-    TokenSet query;
-    int errterm;
-
-    QueryException(const char* text,TokenSet query,int errterm);
-    const char* what() const throw();
-};
-
-
-Json::Value QueryObject(const Json::Value root,const TokenSet& query);
-Json::Value QueryObject(const Json::Value root,const std::string& query);
-
-void ParseHex(const char ch,int* accumulator);
-
-#ifdef UNITTEST
-void utilsUnittest();
-#endif
+Json::Value parseQueryString(std::string);
 
 }

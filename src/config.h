@@ -29,27 +29,57 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 #include "router.h"
+#include "database.h"
 #include "jsoncpp.h"
+#include <map>
+#include <functional>
+
+using namespace std;
 
 namespace minibar{
+
+struct QueryParameter{
+    string name;
+    string path;
+    Json::Value defaultValue;
+    Json::ValueType type;
+    string validation;
+
+    QueryParameter(Json::Value& param);
+};
+
+class Config;
+
+struct RestNode{
+    Database* database;
+    vector<QueryParameter> parameters;
+    string query;
+
+    RestNode(Config* config,Json::Value& root);
+};
+
+
 
 class Config{
     bool debugMode;
     Json::Value root;
     RouteNode router;
     vector<RestNode> routes;
-
+    map<std::string,Database*> databases;
+    
 public:
     Config();
     ~Config();
 
     void clear();
     Json::Value getRoot();
-    void loadConfig(char* filename);
-    Json::Value getRestNode(string path,Json::Value& pathValues);
+    void loadConfig(string filename);
+
+    Database* getDatabase(string name);
+    RestNode* getRestNode(string path,Json::Value& pathValues);
 
 #ifdef UNITTEST
-    static void unittest();
+static void unittest();
 #endif
 };
 
