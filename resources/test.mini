@@ -1,0 +1,31 @@
+{
+    "comments":"Test Config File for Minibar",
+    "version":"2.0",
+
+    "DB":{
+        "default": {
+            "type":"sqlite3",
+            "filename":"dist/test.db"
+        }
+    }, 
+    "REST":{
+        "GET/users/:username":{
+            "database":"default",
+            "query":"select * from users where username = ?",
+            "params":["path.username"]
+        },
+        "GET/test2":{
+            "database":"default",
+            "query":"select * from users where username = ?",
+            "params":[
+                {
+                    "name": "username",
+                    "path":"request.username",
+                    "default": null,
+                    "type": "string",
+                    "validation": "[a-zA-Z-]*"
+                }
+            ]
+        }
+    }
+}
