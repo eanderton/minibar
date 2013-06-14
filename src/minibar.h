@@ -38,7 +38,6 @@ namespace minibar{
 
 // externs for frontend - to be defined elsewhere
 
-extern std::string getRestTarget();
 extern void logPrint(const char* format,...);
 extern void logString(std::string str);
 extern void writeString(std::string str);
@@ -51,7 +50,7 @@ extern void logException(const std::string& ex);
 
 // prototypes
 
-void ProcessRequest();
+void processRequest();
 
 
 #ifdef DEBUG

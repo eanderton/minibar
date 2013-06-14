@@ -45,7 +45,8 @@ struct QueryParameter{
     Json::ValueType type;
     string validation;
 
-    QueryParameter(Json::Value& param);
+    QueryParameter();
+    QueryParameter(const Json::Value& param);
 };
 
 class Config;
@@ -55,7 +56,8 @@ struct RestNode{
     vector<QueryParameter> parameters;
     string query;
 
-    RestNode(Config* config,Json::Value& root);
+    RestNode();
+    RestNode(Config* config,const Json::Value& root);
 };
 
 
@@ -64,7 +66,7 @@ class Config{
     bool debugMode;
     Json::Value root;
     RouteNode router;
-    vector<RestNode> routes;
+    vector<RestNode*> routes;
     map<std::string,Database*> databases;
     
 public:
@@ -77,10 +79,6 @@ public:
 
     Database* getDatabase(string name);
     RestNode* getRestNode(string path,Json::Value& pathValues);
-
-#ifdef UNITTEST
-static void unittest();
-#endif
 };
 
 }

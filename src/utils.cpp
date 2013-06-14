@@ -130,7 +130,9 @@ void ParseHex(const char ch,int* accumulator){
 }
 
 #ifdef UNITTEST
-#include <assert.h>
+#include "gtest/gtest.h"
+
+using namespace minibar;
 
 bool tokensEqual(minibar::TokenSet& a,minibar::TokenSet& b){
     if(a.size() != b.size()) return false;
@@ -146,11 +148,11 @@ bool tokensEqual(minibar::TokenSet& a,minibar::TokenSet& b){
     return true;
 }
 
-void minibar::utilsUnittest(){
+TEST(MinibarUtils,Unittest){
     TokenSet test = tokenize("foo/bar/baz","/");
     TokenSet test2 = {"foo","bar","baz"};
 
-    assert(tokensEqual(test,test2));
+    ASSERT_TRUE(tokensEqual(test,test2));
 }
 
 #endif

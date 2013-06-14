@@ -118,7 +118,7 @@ void logException(const std::string& ex){
 
 int main(){
     while(FCGX_Accept(&minibar::inStream,&minibar::outStream,&minibar::errStream,&minibar::envp) >= 0){
-        minibar::ProcessRequest();
+        minibar::processRequest();
     }
     return 0;
 }

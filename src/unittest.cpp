@@ -27,27 +27,12 @@ of the authors and should not be interpreted as representing official policies,
 either expressed or implied, of the FreeBSD Project.
 */
 
-#include "unittest.h"
+#include "gtest/gtest.h"
 
-#ifdef UNITTEST
+// GTest runner
 
-#include <iostream>
-#include "router.h"
-//#include "conifg.h"
-#include "minibar.h"
-#include "utils.h"
-
-using namespace minibar;
-
-void unittest(){
-    cout << "minibar::routerUnittest()" << endl;
-    routerUnittest();
-
-    cout << "minibar::utilsUnittest()" << endl;
-    utilsUnittest();
-    
-    cout << "Unittests complete." << endl;
+int main(int argc,char** argv){
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }
-
-#endif
 

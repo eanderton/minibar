@@ -43,18 +43,24 @@ static Json::ValueType getJsonScalarType(string name){
     throw MinibarException("Expected a scalar type expression");
 }
 
+QueryParameter::QueryParameter(){
+    //do nothing
+}
     
-QueryParameter::QueryParameter(Json::Value& param){
-    if(param.isObject()){
+QueryParameter::QueryParameter(const Json::Value& param){
+    if(param.isObject() && !param.isNull()){
         path = param["path"].asString();
         if(param.isMember("name")){
             name = param["name"].asString();
         }
-        if(param.isMember("default")){
-            defaultValue = param["default"].asString();
-        }
         if(param.isMember("type")){
             type = getJsonScalarType(param["type"].asString());
+        }
+        else{
+            type = Json::nullValue;
+        }
+        if(param.isMember("default")){
+            defaultValue = param["default"].asString();
         }
         if(param.isMember("validation")){
             validation = param["validation"].asString();
@@ -62,19 +68,29 @@ QueryParameter::QueryParameter(Json::Value& param){
     }
     else if(param.isString()){
         path = param.asString();
-        type = Json::ValueType::stringValue;
+        type = Json::ValueType::nullValue;
     }
     else{
         throw MinibarException("Parameter config element must be an object or string");
     }
 }
 
-RestNode::RestNode(Config* config,Json::Value& root){
+///////////////////
+
+RestNode::RestNode(){
+    //do nothing
+}
+
+RestNode::RestNode(Config* config,const Json::Value& root){
     //TODO: can we support a custom/special action here? "special":"schema" ?
+    
+    if(!root.isObject() || root.isNull()){
+        throw MinibarException("REST node must be an object");
+    }
 
     std::string dbName = root.get("database","default").asString();
     database = config->getDatabase(dbName);
-
+    
     query = root["query"].asString();
     
     Json::Value params = root["params"];
@@ -82,6 +98,8 @@ RestNode::RestNode(Config* config,Json::Value& root){
         parameters.push_back(QueryParameter(value));
     }
 }
+
+///////////////////
 
 Config::Config(){
     clear();
@@ -99,6 +117,11 @@ void Config::clear(){
         delete pair.second;
     }
     databases.clear();
+    
+    for(auto it: routes){
+        delete it;
+    }
+    routes.clear();
 }
 
 Json::Value Config::getRoot(){
@@ -131,6 +154,9 @@ void Config::loadConfig(string filename){
     }
     for(string key: dbNode.getMemberNames()){
         Json::Value value = dbNode[key];
+        if(!value.isObject()){
+            throw MinibarException("DB config child node must be an object");
+        }
         databases[key] = Database::FactoryCreate(value);
     }
 
@@ -144,18 +170,27 @@ void Config::loadConfig(string filename){
         TokenSet tokens = tokenize(key,"/");
 
         router.addRoute(tokens,routes.size());
-        routes.push_back(RestNode(this,value));
+        routes.push_back(new RestNode(this,value));
     }
 }
 
 Database* Config::getDatabase(string name){
+
+    if(databases.find(name) == databases.end()){
+        std::string msg;
+        msg += "Database " + name + " does not exist.";
+        throw MinibarException(msg);
+    }
     return databases[name];
 }
 
 
 RestNode* Config::getRestNode(string path,Json::Value& pathValues){
     int idx = router.matchRoute(tokenize(path,"/"),pathValues);
-    return &(routes[idx]);
+    if(idx == RouteNode::NO_ROUTE_MATCH){
+        throw MinibarException(std::string("Unknown route ") + path);
+    }
+    return routes[idx];
 }
 
 
@@ -164,9 +199,102 @@ RestNode* Config::getRestNode(string path,Json::Value& pathValues){
 
 #ifdef UNITTEST
 
-void minibar::Config::unittest(){
+#include "gtest/gtest.h"
+
+using namespace minibar;
+
+static Json::Value operator"" _json( const char* str, size_t sz){
+    Json::Reader reader;
+    Json::Value value;
+    reader.parse(str,value,false);
+    return value;
+}
+
+
+TEST(MinibarConfig,QueryParameter){
+    QueryParameter test;
+    
+    ASSERT_THROW(QueryParameter("[]"_json),MinibarException);
+    
+    test = QueryParameter(R"("foobar")"_json);
+    ASSERT_EQ(test.name,"");
+    ASSERT_EQ(test.path,"foobar");
+    ASSERT_EQ(test.validation,"");
+    ASSERT_EQ(test.defaultValue,Json::nullValue);
+    ASSERT_EQ(test.type,Json::nullValue);
+
+    test = QueryParameter(R"({})"_json);
+    ASSERT_EQ(test.name,"");
+    ASSERT_EQ(test.path,"");
+    ASSERT_EQ(test.validation,"");
+    ASSERT_EQ(test.defaultValue,Json::nullValue);
+    ASSERT_EQ(test.type,Json::nullValue);
+
+    test = QueryParameter(R"({"name":"foo","path":"bar"})"_json);
+    ASSERT_EQ(test.name,"foo");
+    ASSERT_EQ(test.path,"bar");
+    ASSERT_EQ(test.validation,"");
+    ASSERT_EQ(test.defaultValue,Json::nullValue);
+    ASSERT_EQ(test.type,Json::nullValue);
+
+    test = QueryParameter(R"({"name":"foo","path":"bar","validation":"val"})"_json);
+    ASSERT_EQ(test.name,"foo");
+    ASSERT_EQ(test.path,"bar");
+    ASSERT_EQ(test.validation,"val");
+    ASSERT_EQ(test.defaultValue,Json::nullValue);
+    ASSERT_EQ(test.type,Json::nullValue);
+
+    test = QueryParameter(R"({"name":"foo","path":"bar","validation":"val","default":"gorf"})"_json);
+    ASSERT_EQ(test.name,"foo");
+    ASSERT_EQ(test.path,"bar");
+    ASSERT_EQ(test.validation,"val");
+    ASSERT_EQ(test.defaultValue,"gorf");
+    ASSERT_EQ(test.type,Json::nullValue);
+
+    test = QueryParameter(R"({"name":"foo","path":"bar","validation":"val","default":"gorf","type":"string"})"_json);
+    ASSERT_EQ(test.name,"foo");
+    ASSERT_EQ(test.path,"bar");
+    ASSERT_EQ(test.validation,"val");
+    ASSERT_EQ(test.defaultValue,"gorf");
+    ASSERT_EQ(test.type,Json::ValueType::stringValue);
+
+    test = QueryParameter(R"({"type":"string"})"_json);
+    ASSERT_EQ(test.type,Json::ValueType::stringValue);
+    
+    test = QueryParameter(R"({"type":"int"})"_json);
+    ASSERT_EQ(test.type,Json::ValueType::intValue);
+    
+    test = QueryParameter(R"({"type":"uint"})"_json);
+    ASSERT_EQ(test.type,Json::ValueType::uintValue);
+    
+    test = QueryParameter(R"({"type":"real"})"_json);
+    ASSERT_EQ(test.type,Json::ValueType::realValue);
+    
+    test = QueryParameter(R"({"type":"bool"})"_json);
+    ASSERT_EQ(test.type,Json::ValueType::booleanValue);
+    
+    ASSERT_THROW(QueryParameter(R"({"type":""})"_json),MinibarException);
+    ASSERT_THROW(QueryParameter(R"({"type":"foobar"})"_json),MinibarException);
+    ASSERT_THROW(QueryParameter(R"({"type":null})"_json),MinibarException);
+}
+
+TEST(MinibarConfig,RestNode){
+    RestNode test;
+    Config config;
+
+    ASSERT_THROW(RestNode(&config,"[]"_json),MinibarException);
+    ASSERT_THROW(RestNode(&config,R"("foobar")"_json),MinibarException);
+    ASSERT_THROW(RestNode(&config,R"(null)"_json),MinibarException);
+    
+    test = RestNode(&config,R"({})"_json); 
+
+    //TODO: more tests
+}
+
+TEST(MinibarConfig,Config){
     //do nothing
 }
+
 
 #endif
 

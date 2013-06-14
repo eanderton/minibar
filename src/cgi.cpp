@@ -91,3 +91,12 @@ Json::Value parseQueryString(std::string query){
 }
 
 }
+
+#ifdef UNITTEST
+#include "gtest/gtest.h"
+
+TEST(MinibarCGI,Unittest){
+    //do nothing
+}
+
+#endif

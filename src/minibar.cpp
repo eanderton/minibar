@@ -79,7 +79,7 @@ Json::Value getQueryJson(){
     return parseQueryString(getQueryString());
 }
 
-void ProcessRequest(){
+void processRequest(){
     Config config;
 
     try{
@@ -93,7 +93,7 @@ void ProcessRequest(){
         // compose the query path and get the query_node indicated by the path
         Json::Value pathValues; 
         RestNode* restNode = config.getRestNode(getRestTarget(),pathValues);         
-
+        
         //TODO: auth/auth here
 
         // configure parameter evaluation context
@@ -104,9 +104,10 @@ void ProcessRequest(){
         paramContext["query"] = getQueryJson();
         
         // prepare the sql query
+
         Connection* con = restNode->database->getConnection();
         con->prepare(restNode->query);
-
+        
         // gather parameters as indicated on the query_node
         for(QueryParameter param: restNode->parameters){ 
             Json::Value value = QueryObject(paramContext,param.path);
@@ -124,7 +125,7 @@ void ProcessRequest(){
         logJson(rowData);
 
         // cleanup
-        con.close(); 
+        con->close(); 
 
         // send response
         writeString(STATUS_200);
@@ -145,3 +146,99 @@ void ProcessRequest(){
 }
 
 }
+
+#ifdef UNITTEST
+#include "gtest/gtest.h"
+#include <iostream>
+#include <fstream>
+
+// Mock frontend
+namespace minibar{
+
+std::string logPrintResult;
+void logPrint(const char* format,...){
+    char buff[1024];
+    va_list vptr;
+
+    va_start(vptr,format);
+    vsnprintf(buff,1024,format,vptr);
+    logPrintResult = buff;
+}
+
+std::string _logStringResult;
+void logString(std::string str){
+    _logStringResult += str;
+}
+
+std::string _writeStringResult;
+void writeString(std::string str){
+    _writeStringResult += str;
+}
+
+std::string _configFilename;
+std::string getConfigFilename(){
+    return _configFilename;
+
+}
+
+std::string _requestContent;
+std::string getRequestContent(){
+    return _requestContent;
+}
+
+std::string _queryString;
+std::string getQueryString(){
+    return _queryString;
+}
+
+std::string _restTarget;
+std::string getRestTarget(){
+    return _restTarget;
+}
+
+std::string _logException;
+void logException(const std::exception& ex){
+    _logException = ex.what();
+}
+
+void logException(const std::string& ex){
+    _logException = ex;
+}
+
+void _resetFrontend(){
+    _logStringResult = "";
+    _writeStringResult = "";
+    _logException = "";
+}
+
+}
+
+using namespace minibar;
+
+TEST(Minibar,Unittest){
+    _configFilename = "dist/test.mini";
+    
+    _resetFrontend();
+    _restTarget = "GET/users/guest";
+    _requestContent = R"({"username":"user"})";
+
+    processRequest();
+    ASSERT_EQ(_logException,""); 
+    std::string result = 
+"Status: 200 OK\r\nContent-type: application/json\r\n\r\n"
+R"([
+   {
+      "password" : "password",
+      "role" : "guest",
+      "username" : "guest"
+   }
+]
+)";
+    ASSERT_EQ(_writeStringResult,result);
+
+    
+
+}
+
+#endif
+

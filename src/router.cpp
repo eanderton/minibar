@@ -128,10 +128,13 @@ int RouteNode::matchRoute(TokenSet tokens,Json::Value& pathValues){
 }
 
 #ifdef UNITTEST
+#include "gtest/gtest.h"
 #include <iostream>
 #include <algorithm>
 #include <functional>
 #include <assert.h>
+
+using namespace minibar;
 
 void assert_throws(function<void()> x){
     bool result = false;
@@ -141,10 +144,10 @@ void assert_throws(function<void()> x){
     catch(...){
         result = true;
     }
-    assert(result);
+    ASSERT_TRUE(result);
 }
 
-void minibar::routerUnittest(){
+TEST(MinibarRouter,Unittest){
     RouteNode root;
     Json::Value pathValues;
     TokenSet test = tokenize("foo/bar/baz","/");
@@ -155,23 +158,20 @@ void minibar::routerUnittest(){
     root.addRoute(tokenize("foo/bar/baz/:gorf","/"),29);
 
     // prevent duplicates
-    assert_throws([&](){
-        root.addRoute(test,42);
-    });
+    ASSERT_THROW(root.addRoute(test,42),MinibarException);
 
     // matching
     pathValues.clear();
-    assert(root.matchRoute(tokenize("x/y/z","/"),pathValues) == RouteNode::NO_ROUTE_MATCH);
-    assert(pathValues.empty());
+    ASSERT_TRUE(root.matchRoute(tokenize("x/y/z","/"),pathValues) == RouteNode::NO_ROUTE_MATCH);
+    ASSERT_TRUE(pathValues.empty());
 
     pathValues.clear();
-    assert(root.matchRoute(tokenize("foo/bar/baz","/"),pathValues) == 42);
-    assert(pathValues.empty());
+    ASSERT_TRUE(root.matchRoute(tokenize("foo/bar/baz","/"),pathValues) == 42);
+    ASSERT_TRUE(pathValues.empty());
 
     pathValues.clear();
-    assert(root.matchRoute(tokenize("foo/bar/baz/goat","/"),pathValues) == 29);
-    assert(pathValues.isMember("gorf"));
-    assert(pathValues["gorf"].asString().compare("goat") == 0);
-
+    ASSERT_TRUE(root.matchRoute(tokenize("foo/bar/baz/goat","/"),pathValues) == 29);
+    ASSERT_TRUE(pathValues.isMember("gorf"));
+    ASSERT_TRUE(pathValues["gorf"].asString().compare("goat") == 0);
 }
 #endif

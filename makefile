@@ -31,81 +31,101 @@ CC=gcc
 CPPC=g++
 
 # note: use -s to strip symbolic information for smaller size
-CPPFLAGS := $(CPPFLAGS) -Os -g -std=c++11 -Isrc -Werror -DUNITTEST
-CFLAGS := $(CFLAGS) -Os -g -DSQLITE_THREADSAFE=0 -DSQLITE_OMIT_LOAD_EXTENSION
-LFLAGS := -Os -lstdc++ -lfcgi
+CFLAGS := $(CFLAGS) -Os -g -Isrc
+CPPFLAGS := $(CPPFLAGS) -Os -g -std=c++11 -Isrc -Werror
+LFLAGS := -Os -lstdc++ -ldl
 
 SDIR := src
 ODIR := obj
 DIST := dist
 
-C_SRC := sqlite3.c
-CPP_SRC := router.cpp config.cpp minibar.cpp unittest.cpp utils.cpp main.cpp jsoncpp.cpp sql.cpp
-SRC := $(C_SRC) $(CPP_SRC)
 
-TARGETNAME := minibar
-TARGET := $(DIST)/$(TARGETNAME)
-GDBFILE := $(ODIR)/$(TARGETNAME).gdb
+CORE_SRC := cgi.cpp router.cpp database.cpp config.cpp utils.cpp jsoncpp.cpp minibar.cpp \
+sqlite3.c sql.cpp
+
+FASTCGI_SRC := fastcgi.cpp
+
+TESTING_SRC := unittest.cpp
+
+
+TARGETNAME = minibar
+TARGET = $(DIST)/$(TARGETNAME)
+GDBFILE = $(ODIR)/$(TARGETNAME).gdb
 
 PACKAGEFILES := $(TARGET) 
 
 # refinement
-SRCS := $(patsubst %,$(SDIR)/%,$(SRC))
-C_SRCS := $(patsubst %,$(SDIR)/%,$(C_SRC))
-CPP_SRCS := $(patsubst %,$(SDIR)/%,$(CPP_SRC))
-OBJ := $(patsubst %,$(ODIR)/%,$(SRC)) 
-OBJ := $(patsubst %.c,%.o,$(OBJ))
-OBJ := $(patsubst %.cpp,%.o,$(OBJ))
-BRK := $(patsubst %.o,%.brk,$(OBJ))
+
+CORE_OBJ := $(CORE_SRC:%.c=%.o)
+CORE_OBJ := $(CORE_OBJ:%.cpp=%.o)
+CORE_OBJ := $(CORE_OBJ:%=$(ODIR)/%)
+CORE_SRC := $(CORE_SRC:%=$(SDIR)/%)
+
+FASTCGI_OBJ := $(FASTCGI_SRC:%.c=%.o)
+FASTCGI_OBJ := $(FASTCGI_OBJ:%.cpp=%.o)
+FASTCGI_OBJ := $(FASTCGI_OBJ:%=$(ODIR)/%)
+FASTCGI_SRC := $(FASTCGI_SRC:%=$(SDIR)/%)
+
+TESTING_OBJ := $(TESTING_SRC:%.c=%.o)
+TESTING_OBJ := $(TESTING_OBJ:%.cpp=%.o)
+TESTING_OBJ := $(TESTING_OBJ:%=$(ODIR)/%)
+TESTING_SRC := $(TESTING_SRC:%=$(SDIR)/%)
+
+ALL_SRC := $(CORE_SRC) $(FASTCGI_SRC) $(TESTING_SRC)
+FASTCGI_SRC := $(FASTCGI_SRC) $(CORE_SRC)
+TESTING_SRC := $(TESTING_SRC) $(CORE_SRC)
+GDB_OBJ := $(CORE_OBJ:%.o=%.gdb)
 
 # header dependencies
 DEPEND = $(ODIR)/deps
 
-$(DEPEND): $(SRCS)
+$(DEPEND): $(ALL_SRC)
 	-rm -rf $@
-	$(CPPC) $(CPPFLAGS) -MM $(CPP_SRCS) >> $@
-	$(CC) $(CFLAGS) -MM $(C_SRCS) >> $@
+	$(CPPC) $(CPPFLAGS) -MM $(filter %.cpp,$(ALL_SRC)) >> $@
+	$(CC) $(CFLAGS) -MM $(filter %.c,$(ALL_SRC)) >> $@
 
 depend: $(DEPEND)
 include $(DEPEND)
 
-# c/cpp compilation
+## compilation
 $(ODIR)/%.o: $(SDIR)/%.cpp
 	$(CPPC) -c -o $@ $(CPPFLAGS) $<
 
 $(ODIR)/%.o: $(SDIR)/%.c
 	$(CC) -c -o $@ $(CFLAGS) $<
 
-$(TARGET): $(OBJ)
-	$(CC) -o $(TARGET) $^ $(LFLAGS)
 
-$(DIST)/%.db: $(SDIR)/%.sql
-	cat $< | sqlite3 $@
+#$(DIST)/%.db: $(SDIR)/%.sql
+#	cat $< | sqlite3 $@
 
-# gather breakpoint information for GDB
-$(ODIR)/%.brk: $(SDIR)/%.c
+$(ODIR)/%.gdb: $(SDIR)/%.c
 	grep -nHi '//@breakpoint' $< | sed -n 's/^\(.*:.*\):.*/break \1/p' > $@
 
-$(ODIR)/%.brk: $(SDIR)/%.cpp
+$(ODIR)/%.gdb: $(SDIR)/%.cpp
 	grep -nHi '//@breakpoint' $< | sed -n 's/^\(.*:.*\):.*/break \1/p' > $@
 
-# build the GDB script to use for the target
-$(GDBFILE): $(BRK)
+## build the GDB script to use for the target
+$(GDBFILE): $(DEBUG_TARGET) $(GDB_OBJ)
 	-rm -f $@
-	for f in $(BRK); do cat $$f >> $@; done
-	echo "symbol $(TARGET)" >> $@
+	for f in $<; do cat $$f >> $@; done
+	echo "symbol $(DEBUG_TARGET)" >> $@
 	echo "continue" >> $@
 
-# packaging
-compile: depend $(OBJS) $(PACKAGEFILES)
+## binary targets
+$(TARGET)-fastcgi: depend $(CORE_OBJ) $(FASTCGI_OBJ)
+	$(CC) -o $@ $(filter %.o,$^) $(LFLAGS) -lpthread -lfcgi
+
+$(TARGET)-test: depend $(CORE_OBJ) $(TESTING_OBJ)
+	$(CC) -o $@ $(filter %.o,$^) $(LFLAGS) -lpthread -lgtest
+
+## packaging
+compile: $(TARGET)-fastcgi
 
 package: compile
 
 # user targets
 install: package stop
-#	sudo mkdir -p /var/opt/minibar
-	sudo cp $(DIST)/minibar /usr/local/bin
-#	sudo chown -R www-data:www-data /var/opt/minibar
+	sudo cp $(DIST)/minibar-fastcgi /usr/local/bin
 	make restart
 
 reinstall: uninstall install
@@ -120,8 +140,8 @@ tail:
 	#sudo tail -f /var/log/lighttpd/minibar.log
 	sudo tail -f /var/log/lighttpd/error.log
 
-GETPID := "$$(ps aux | grep minibar | awk '{print $$2}' | head -1)"
-attach:
+GETPID := "$$(ps aux | grep minibar-fastcgi | awk '{print $$2}' | head -1)"
+attach: $(GDBFILE)
 	sudo gdb --pid=$(GETPID) -x $(GDBFILE)
 
 debug: $(GDBFILE) reinstall attach
@@ -129,9 +149,16 @@ debug: $(GDBFILE) reinstall attach
 clean:
 	-rm -rf $(ODIR)/* $(DIST)/*
 
-test: $(GDBFILE) package
-	#gdb $(TARGET) -x $(GDBFILE)
-	$(TARGET)
+## FastCGI test target
+test: CPPFLAGS += -DUNITTEST
+test: CPP_SRC += unittest.cpp
+test: $(TARGET)-test $(GDBFILE)
+	cat resources/test.sql | sqlite3 dist/test.db
+	jsonlint -s -v resources/test.mini
+	cp resources/test.mini dist/test.mini
+	gdb $(TARGET)-test -x $(GDBFILE)
+
+
 
 all: package
 

@@ -28,11 +28,12 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 #include "sql.h"
-
+#include "config.h"
 
 namespace minibar{
 
 REGISTER_DB(sqlite,SqliteDb::Create);
+REGISTER_DB(sqlite3,SqliteDb::Create);
 
 ///////// 
 
@@ -69,14 +70,15 @@ SqliteDbConnection::~SqliteDbConnection(){
     close();
 }
 
-void SqlStatement::prepare(std::string query){
+void SqliteDbConnection::prepare(std::string query){
     //@breakpoint
     int result;
-    result = sqlite3_prepare_v2(db,query.data(),query.length(),&stmt,NULL);
+    result = sqlite3_prepare_v2(handle,query.data(),query.length(),&stmt,NULL);
     sqlite3_fn(result);
 }
 
 void SqliteDbConnection::bind(int idx,Json::Value value){
+    //@breakpoint
     std::string str;
     switch(value.type()){
     case Json::nullValue: 
@@ -107,7 +109,7 @@ void SqliteDbConnection::bind(int idx,Json::Value value){
 
 void SqliteDbConnection::bind(Json::Value value){
     bind(bindIndex+1,value);
-    bindIdex++;
+    bindIndex++;
 }
 
 void SqliteDbConnection::bind(std::string name,Json::Value value){
@@ -117,7 +119,7 @@ void SqliteDbConnection::bind(std::string name,Json::Value value){
     }
 }
 
-int SqlStatement::queryStep(){
+int SqliteDbConnection::queryStep(){
     int result = sqlite3_step(stmt);
     switch(result){
         case SQLITE_DONE:
@@ -129,7 +131,7 @@ int SqlStatement::queryStep(){
     }
 }
 
-Json::Value SqlStatement::queryGetRow(){
+Json::Value SqliteDbConnection::queryGetRow(){
     Json::Value row;
     for(int i=0; i<sqlite3_column_count(stmt); i++){
         const char* name = sqlite3_column_name(stmt,i);
@@ -191,8 +193,7 @@ Connection* SqliteDb::getConnection(){
 }
 
 Database* SqliteDb::Create(Json::Value root){
-    std::string dbFile = root["filename"];
-    dbFile = QueryObject(paramContext,dbFile).asString();
+    std::string dbFile = root["filename"].asString();
     return new SqliteDb(dbFile);
 }
 

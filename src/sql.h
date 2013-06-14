@@ -42,14 +42,6 @@ using namespace std;
 
 namespace minibar {
 
-class SqliteDb: public Database{
-public:
-    SqliteDb();
-    ~SqliteDb();
-    static Database* Create(Json::Value root);
-};
-
-
 // exception class for sqlite3
 struct SqlException: public std::exception{
     const char* msg;
@@ -63,15 +55,15 @@ class SqliteDbConnection: public Connection{
     sqlite3_stmt* stmt;
     sqlite3* handle;
     int bindIndex;
-    
-    SqliteDbConnection(std::string dbFile);
-    ~SqliteDbConnection();
    
     void bind(int idx,Json::Value value);
     int queryStep();
     Json::Value queryGetRow();
 
 public:
+    SqliteDbConnection(std::string dbFile);
+    ~SqliteDbConnection();
+    
     virtual void prepare(std::string query);
     virtual void bind(Json::Value value);
     virtual void bind(std::string name,Json::Value value);
@@ -87,7 +79,7 @@ class SqliteDb: public Database{
 public:
     virtual Connection* getConnection();
 
-    static Database* Create(Json::Value root)
+    static Database* Create(Json::Value root);
 };
 
 }

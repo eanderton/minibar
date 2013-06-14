@@ -38,19 +38,16 @@ using namespace std;
 namespace minibar{
 
 struct MinibarException : public std::exception{
-    const char* text;
+    std::string text;
 
-    MinibarException(std::string& text){
-        text = text.c_str();
-    }
     MinibarException(std::string text){
-        text = text.c_str();
+        this->text = text;
     }
     MinibarException(const char *text){
         this->text = text;
     }
     const char* what() const throw(){
-        return text;
+        return text.c_str();
     }
 };
 
@@ -75,9 +72,5 @@ Json::Value QueryObject(const Json::Value root,const TokenSet& query);
 Json::Value QueryObject(const Json::Value root,const std::string& query);
 
 void ParseHex(const char ch,int* accumulator);
-
-#ifdef UNITTEST
-void utilsUnittest();
-#endif
 
 }

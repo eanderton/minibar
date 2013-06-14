@@ -41,9 +41,21 @@ Database* Database::FactoryCreate(Json::Value root){
     if(it == registry.end()){
         throw MinibarException("Database type is not supported");
     }
-    return it->second(root);
+
+    Database* db = it->second(root);
+    return db;
 }
 
 
 
 }
+
+#ifdef UNITTEST
+#include "gtest/gtest.h"
+
+TEST(MinibarDatabase,Unittest){
+    //do nothing
+}
+
+#endif
+
