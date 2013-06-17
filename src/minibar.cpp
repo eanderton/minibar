@@ -96,40 +96,57 @@ void processRequest(){
         
         //TODO: auth/auth here
 
-        // configure parameter evaluation context
-        Json::Value paramContext;
-        paramContext["conf"] = config.getRoot();
-        paramContext["path"] = pathValues;
-        paramContext["request"] = getRequestJson();
-        paramContext["query"] = getQueryJson();
-        
-        // prepare the sql query
+        Json::Value resultJson;
 
-        Connection* con = restNode->database->getConnection();
-        con->prepare(restNode->query);
-        
-        // gather parameters as indicated on the query_node
-        for(QueryParameter param: restNode->parameters){ 
-            Json::Value value = QueryObject(paramContext,param.path);
-            if(param.name.empty()){
-                con->bind(value);  // positional
+        // process special actions
+        if(!restNode->specialAction.empty()){
+            if(restNode->specialAction.compare("api")==0){
+                // dump the sanitized config to JSON
+                resultJson = config.toJson(); 
             }
             else{
-                con->bind(param.name,value);
+                writeString(STATUS_400);
+                std::string msg;
+                msg += "Unknown special action: ";
+                msg += restNode->specialAction;
+                writeString(msg.c_str());
             }
         }
+        else{
+            // configure parameter evaluation context
+            Json::Value paramContext;
+            paramContext["conf"] = config.getRoot();
+            paramContext["path"] = pathValues;
+            paramContext["request"] = getRequestJson();
+            paramContext["query"] = getQueryJson();
+            
+            // prepare the sql query
+            Connection* con = restNode->database->getConnection();
+            con->prepare(restNode->query);
+            
+            // gather parameters as indicated on the query_node
+            for(QueryParameter param: restNode->parameters){ 
+                Json::Value value = QueryObject(paramContext,param.path);
+                if(param.name.empty()){
+                    con->bind(value);  // positional
+                }
+                else{
+                    con->bind(param.name,value);
+                }
+            }
 
-        Json::Value rowData = con->execute();
-        
-        // debug
-        logJson(rowData);
+            resultJson = con->execute();
+            
+            // debug
+            logJson(resultJson);
 
-        // cleanup
-        con->close(); 
+            // cleanup
+            con->close(); 
+        }
 
         // send response
         writeString(STATUS_200);
-        writeJson(rowData);
+        writeJson(resultJson);
         return;
 
     // exception management

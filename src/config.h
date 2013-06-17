@@ -52,12 +52,16 @@ struct QueryParameter{
 class Config;
 
 struct RestNode{
+    std::string path;
+    std::string specialAction;
+    std::string databaseName;
     Database* database;
     vector<QueryParameter> parameters;
     string query;
 
     RestNode();
-    RestNode(Config* config,const Json::Value& root);
+    RestNode(Config* config,const std::string& path,const Json::Value& root);
+    Json::Value toJson();
 };
 
 
@@ -79,6 +83,8 @@ public:
 
     Database* getDatabase(string name);
     RestNode* getRestNode(string path,Json::Value& pathValues);
+
+    Json::Value toJson();
 };
 
 }

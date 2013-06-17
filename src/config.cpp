@@ -81,22 +81,50 @@ RestNode::RestNode(){
     //do nothing
 }
 
-RestNode::RestNode(Config* config,const Json::Value& root){
-    //TODO: can we support a custom/special action here? "special":"schema" ?
-    
-    if(!root.isObject() || root.isNull()){
-        throw MinibarException("REST node must be an object");
-    }
+RestNode::RestNode(Config* config,const std::string& path,const Json::Value& root){
+    this->path = path;
 
-    std::string dbName = root.get("database","default").asString();
-    database = config->getDatabase(dbName);
-    
-    query = root["query"].asString();
-    
-    Json::Value params = root["params"];
-    for(Json::Value value: params){
-        parameters.push_back(QueryParameter(value));
+    if(root.isMember("special") && root["special"].isString()){
+        this->specialAction = root["special"].asString();
     }
+    else{ 
+        if(!root.isObject() || root.isNull()){
+            throw MinibarException("REST node must be an object");
+        }
+
+        std::string dbName = root.get("database","default").asString();
+        database = config->getDatabase(dbName);
+        databaseName = dbName;
+ 
+        query = root["query"].asString();
+        
+        Json::Value params = root["params"];
+        for(Json::Value value: params){
+            parameters.push_back(QueryParameter(value));
+        }
+    }
+}
+
+Json::Value RestNode::toJson(){
+    Json::Value result;
+    if(!specialAction.empty()){
+        result["special"] = specialAction;
+    }
+    else{
+        Json::Value params;
+        for(auto param: parameters){
+            Json::Value paramJson;
+            paramJson["name"]       = param.name;
+            paramJson["path"]       = param.path;
+            paramJson["default"]    = param.defaultValue;
+            paramJson["type"]       = param.type;
+            paramJson["validation"] = param.validation;
+            params.append(paramJson);
+        }
+        result["params"] = params;
+        result["database"] = databaseName; 
+    }
+    return result;
 }
 
 ///////////////////
@@ -170,7 +198,7 @@ void Config::loadConfig(string filename){
         TokenSet tokens = tokenize(key,"/");
 
         router.addRoute(tokens,routes.size());
-        routes.push_back(new RestNode(this,value));
+        routes.push_back(new RestNode(this,key,value));
     }
 }
 
@@ -193,7 +221,20 @@ RestNode* Config::getRestNode(string path,Json::Value& pathValues){
     return routes[idx];
 }
 
+Json::Value Config::toJson(){
+    Json::Value result;
 
+    for(auto dbPair: databases){
+        auto name = dbPair.first;
+        result["DB"][name] = name;
+    }
+
+    for(auto routeNode: routes){
+        result["REST"][routeNode->path] = routeNode->toJson();
+    }
+
+    return result;
+}
 
 }
 
