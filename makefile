@@ -105,10 +105,10 @@ $(ODIR)/%.gdb: $(SDIR)/%.cpp
 	grep -nHi '//@breakpoint' $< | sed -n 's/^\(.*:.*\):.*/break \1/p' > $@
 
 ## build the GDB script to use for the target
-$(GDBFILE): $(DEBUG_TARGET) $(GDB_OBJ)
+$(GDBFILE): $(TARGET)-test $(GDB_OBJ)
 	-rm -f $@
 	for f in $<; do cat $$f >> $@; done
-	echo "symbol $(DEBUG_TARGET)" >> $@
+	echo "symbol $(TARGET)-test" >> $@
 	echo "continue" >> $@
 
 ## binary targets

@@ -32,6 +32,7 @@ either expressed or implied, of the FreeBSD Project.
 
 #include <string>
 #include <exception>
+#include <map>
 #include <vector>
 #include <memory>
 #include <fstream>
@@ -79,20 +80,48 @@ Json::Value getQueryJson(){
     return parseQueryString(getQueryString());
 }
 
+class ConfigCache{
+private:
+     std::map<std::string,Config*> cache;
+public:
+    ~ConfigCache(){
+        auto iter = cache.begin();
+        while(iter != cache.end()){
+            delete iter->second;
+            iter++;
+        }
+    }
+    
+    Config* getConfig(std::string filename){
+        Config* config;
+
+        auto iter = cache.find(filename);
+        if(iter == cache.end()){
+            config = new Config();
+            config->loadConfig(filename);
+            cache[filename] = config;
+        }
+        else{
+            config = iter->second;
+        }
+        return config;
+    }
+};
+
+ConfigCache cache;
+
 void processRequest(){
-    Config config;
 
     try{
         debugPrint("Handling Request");
 
         // parse configuration file and establish root JSON object
-        //TODO: cache this instead
-        config.clear();
-        config.loadConfig(getConfigFilename());
+
+        Config* config = cache.getConfig(getConfigFilename());
  
         // compose the query path and get the query_node indicated by the path
         Json::Value pathValues; 
-        RestNode* restNode = config.getRestNode(getRestTarget(),pathValues);         
+        RestNode* restNode = config->getRestNode(getRestTarget(),pathValues);         
         
         //TODO: auth/auth here
 
@@ -102,7 +131,7 @@ void processRequest(){
         if(!restNode->specialAction.empty()){
             if(restNode->specialAction.compare("api")==0){
                 // dump the sanitized config to JSON
-                resultJson = config.toJson(); 
+                resultJson = config->toJson(); 
             }
             else{
                 writeString(STATUS_400);
@@ -115,7 +144,7 @@ void processRequest(){
         else{
             // configure parameter evaluation context
             Json::Value paramContext;
-            paramContext["conf"] = config.getRoot();
+            paramContext["conf"] = config->getRoot();
             paramContext["path"] = pathValues;
             paramContext["request"] = getRequestJson();
             paramContext["query"] = getQueryJson();

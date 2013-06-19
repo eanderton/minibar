@@ -84,14 +84,14 @@ RestNode::RestNode(){
 RestNode::RestNode(Config* config,const std::string& path,const Json::Value& root){
     this->path = path;
 
+    if(!root.isObject() || root.isNull()){
+        throw MinibarException("REST node must be an object");
+    }
+
     if(root.isMember("special") && root["special"].isString()){
         this->specialAction = root["special"].asString();
     }
     else{ 
-        if(!root.isObject() || root.isNull()){
-            throw MinibarException("REST node must be an object");
-        }
-
         std::string dbName = root.get("database","default").asString();
         database = config->getDatabase(dbName);
         databaseName = dbName;
@@ -323,11 +323,11 @@ TEST(MinibarConfig,RestNode){
     RestNode test;
     Config config;
 
-    ASSERT_THROW(RestNode(&config,"[]"_json),MinibarException);
-    ASSERT_THROW(RestNode(&config,R"("foobar")"_json),MinibarException);
-    ASSERT_THROW(RestNode(&config,R"(null)"_json),MinibarException);
+    ASSERT_THROW(RestNode(&config,"","[]"_json),MinibarException);
+    ASSERT_THROW(RestNode(&config,"",R"("foobar")"_json),MinibarException);
+    ASSERT_THROW(RestNode(&config,"",R"(null)"_json),MinibarException);
     
-    test = RestNode(&config,R"({})"_json); 
+    ASSERT_THROW(RestNode(&config,"",R"({})"_json),MinibarException); 
 
     //TODO: more tests
 }
