@@ -12,12 +12,35 @@
             // database vendor.
             "type":"sqlite3",
             // vendor specific connection details
-            "filename":"/var/opt/npi/rsscontrol.db"
-        }
-    }, 
- 
+            "filename":"/var/opt/myapp/rsscontrol.db"
+        },
+	"htpasswd": {
+	    "type":"htpasswd",
+	    "filename":"/var/opt/myapp/.htaccess",
+	    "algorithm":"md5"
+	}
+    },
+
     // REST specification
     "REST":{
+        "PUT/user/:username":{
+            "database":"htpasswd",
+	    "query":"update",
+            "params":["path.username","request.password"]
+        },
+
+        "POST/user/:username":{
+            "database":"htpasswd",
+	    "query":"insert",
+            "params":["path.username","request.password"]
+        },
+        
+        "DELETE/user/:username":{
+            "database":"htpasswd",
+	    "query":"delete",
+            "params":["path.username"]
+        },
+
         // REST queries are mapped by METHOD/path syntax
         "GET/foobar":{
             // database to use - is 'default' if not specified
@@ -60,7 +83,7 @@
             "query":"select * from users where username = ?",
             "params":[
                 // parameters in the PARAMETERS map can be referenced in any REST query
-                "PARAMETERS.username"
+                ".config.PARAMETERS.username"
             ]
         },
 

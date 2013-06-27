@@ -40,10 +40,8 @@ either expressed or implied, of the FreeBSD Project.
 #include "utils.h"
 #include "minibar.h"
 #include "cgi.h"
-#include "config.h"
+#include "configure.h"
 #include "database.h"
-
-#include "sql.h"
 
 namespace minibar{
 
@@ -123,13 +121,12 @@ void processRequest(){
         Json::Value pathValues; 
         RestNode* restNode = config->getRestNode(getRestTarget(),pathValues);         
         
-        //TODO: auth/auth here
-
         Json::Value resultJson;
 
         // process special actions
-        if(!restNode->specialAction.empty()){
-            if(restNode->specialAction.compare("api")==0){
+        std::string action = restNode->specialAction;
+        if(!action.empty()){
+            if(action.compare("api")==0){
                 // dump the sanitized config to JSON
                 resultJson = config->toJson(); 
             }
@@ -262,7 +259,7 @@ void _resetFrontend(){
 using namespace minibar;
 
 TEST(Minibar,Unittest){
-    _configFilename = "dist/test.mini";
+    _configFilename = "resources/test.mini";
     
     _resetFrontend();
     _restTarget = "GET/users/guest";
