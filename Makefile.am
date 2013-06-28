@@ -49,5 +49,14 @@ minibar_test_SOURCES = $(minibar_core_source) $(minibar_database_source) $(minib
 minibar_test_CXXFLAGS = -DUNITTEST
 minibar_test_LDADD = -lgtest
 
-unittest: minibar-test
+
+
+unittest: minibar-test resources/test.db
 	./minibar-test
+
+# Sqlite3 SQL compilation support
+%.db %.db: %.sql
+	cat $< | sqlite3 $@
+
+clean-local:
+	rm -f resources/test.db

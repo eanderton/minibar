@@ -5,7 +5,7 @@
     "DB":{
         "default": {
             "type":"sqlite3",
-            "filename":"dist/test.db"
+            "filename":"resources/test.db"
         }
     }, 
     "REST":{

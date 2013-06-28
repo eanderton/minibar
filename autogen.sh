@@ -1,5 +1,7 @@
-#/usr/bin/sh
+#!/bin/sh
+set -e
 
-touch NEWS README AUTHORS ChangeLog
-autoreconf --force --install
-./configure
+aclocal --install -I m4
+autoconf
+automake --add-missing --copy
+./configure "$@"

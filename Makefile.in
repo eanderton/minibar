@@ -872,8 +872,8 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-noinstPROGRAMS clean-sbinPROGRAMS \
-	mostlyclean-am
+clean-am: clean-generic clean-local clean-noinstPROGRAMS \
+	clean-sbinPROGRAMS mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
@@ -946,24 +946,32 @@ uninstall-am: uninstall-sbinPROGRAMS
 .MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS all all-am am--refresh check check-am clean \
-	clean-generic clean-noinstPROGRAMS clean-sbinPROGRAMS ctags \
-	dist dist-all dist-bzip2 dist-gzip dist-lzip dist-lzma \
-	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
-	distclean-compile distclean-generic distclean-hdr \
-	distclean-tags distcleancheck distdir distuninstallcheck dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-html install-html-am \
-	install-info install-info-am install-man install-pdf \
-	install-pdf-am install-ps install-ps-am install-sbinPROGRAMS \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
-	tags uninstall uninstall-am uninstall-sbinPROGRAMS
+	clean-generic clean-local clean-noinstPROGRAMS \
+	clean-sbinPROGRAMS ctags dist dist-all dist-bzip2 dist-gzip \
+	dist-lzip dist-lzma dist-shar dist-tarZ dist-xz dist-zip \
+	distcheck distclean distclean-compile distclean-generic \
+	distclean-hdr distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am install-html \
+	install-html-am install-info install-info-am install-man \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-sbinPROGRAMS install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags uninstall \
+	uninstall-am uninstall-sbinPROGRAMS
 
 
-unittest: minibar-test
+unittest: minibar-test resources/test.db
 	./minibar-test
+
+# Sqlite3 SQL compilation support
+%.db %.db: %.sql
+	cat $< | sqlite3 $@
+
+clean-local:
+	rm -f resources/test.db
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
