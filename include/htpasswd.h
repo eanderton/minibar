@@ -81,17 +81,18 @@ class HtPasswdDb: public minibar::Database{
     UserMap users;  
     HashFn hashFn;
 
+protected:
+    void syncCache();
+    void flushCache();
+    
     HtPasswdDb(string dbFile,HashFn hashFn);
     ~HtPasswdDb();
 
-    void syncCache();
-    void flushCache();
-
+public:
     static string hashCrypt(string &value);
     static string hashMD5(string &value);
     static string hashSH1(string &value);
 
-public:
     virtual minibar::Connection* getConnection();
 
     void updateUser(string username,string password);

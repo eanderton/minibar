@@ -36,8 +36,14 @@ minibar_fastcgi_source = \
 src/fastcgi.cpp
 
 minibar_test_source = \
-src/unittest.cpp \
-include/unittest.h
+src/test/main.cpp \
+src/test/utils.cpp \
+src/test/cgi.cpp \
+src/test/configure.cpp \
+src/test/htpasswd.cpp \
+src/test/database.cpp \
+src/test/minibar.cpp \
+src/test/router.cpp
 
 sbin_PROGRAMS = minibar-fastcgi
 noinst_PROGRAMS = minibar-test

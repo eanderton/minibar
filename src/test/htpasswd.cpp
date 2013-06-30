@@ -30,5 +30,59 @@ either expressed or implied, of the FreeBSD Project.
 // used to get the crypt(3) function
 #define _XOPEN_SOURCE
 
+#include <iostream>
+#include <fstream>
+#include <string>
 #include "htpasswd.h"
+#include "gtest/gtest.h"
 
+using namespace minibar;
+using namespace htpasswd;
+
+
+class HtPasswdTest : public HtPasswdDb{
+public:
+    HtPasswdTest(string filename,HashFn fn): HtPasswdDb(filename,fn){
+        //do nothing
+    }
+};
+
+#define HTPASSWD_TEST_FILE "/tmp/minibar_test.htpasswd"
+
+std::string readFile(std::string filename){
+    ifstream file(filename);
+    std::string data;
+    while(file.good()){
+        std::string line;
+        getline(file,line);
+        data += line;
+    }
+    file.close();
+    return data;
+}
+
+TEST(HTPasswd,Unittest){
+    ASSERT_NO_THROW(HtPasswdTest db(HTPASSWD_TEST_FILE,HtPasswdDb::hashCrypt));
+}
+
+TEST(HTPasswd,Insert){
+    HtPasswdTest db(HTPASSWD_TEST_FILE,HtPasswdDb::hashCrypt);
+
+    db.insertUser("username","changeme");
+
+    ASSERT_TRUE(readFile(HTPASSWD_TEST_FILE).compare("username:ZZyOXxdk08WKY") == 0); 
+}
+
+TEST(HTPasswd,Update){
+    HtPasswdTest db(HTPASSWD_TEST_FILE,HtPasswdDb::hashCrypt);
+
+    db.updateUser("username","password");
+    ASSERT_TRUE(readFile(HTPASSWD_TEST_FILE).compare("username:ZZKRwXSu3tt8s") == 0); 
+}
+
+TEST(HTPasswd,Delete){
+    HtPasswdTest db(HTPASSWD_TEST_FILE,HtPasswdDb::hashCrypt);
+
+    db.deleteUser("username");
+    ASSERT_TRUE(readFile(HTPASSWD_TEST_FILE).compare("") == 0);
+}

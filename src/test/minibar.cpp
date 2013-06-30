@@ -34,6 +34,7 @@ either expressed or implied, of the FreeBSD Project.
 #include "configure.h"
 #include "database.h"
 #include "gtest/gtest.h"
+#include <stdarg.h>
 #include <iostream>
 #include <fstream>
 

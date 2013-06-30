@@ -87,7 +87,14 @@ am__objects_4 = src/minibar_test-cgi.$(OBJEXT) \
 	src/minibar_test-utils.$(OBJEXT)
 am__objects_5 = src/minibar_test-htpasswd.$(OBJEXT) \
 	src/minibar_test-sqlite3db.$(OBJEXT)
-am__objects_6 = src/minibar_test-unittest.$(OBJEXT)
+am__objects_6 = src/test/minibar_test-main.$(OBJEXT) \
+	src/test/minibar_test-utils.$(OBJEXT) \
+	src/test/minibar_test-cgi.$(OBJEXT) \
+	src/test/minibar_test-configure.$(OBJEXT) \
+	src/test/minibar_test-htpasswd.$(OBJEXT) \
+	src/test/minibar_test-database.$(OBJEXT) \
+	src/test/minibar_test-minibar.$(OBJEXT) \
+	src/test/minibar_test-router.$(OBJEXT)
 am_minibar_test_OBJECTS = $(am__objects_4) $(am__objects_5) \
 	$(am__objects_6)
 minibar_test_OBJECTS = $(am_minibar_test_OBJECTS)
@@ -258,8 +265,14 @@ minibar_fastcgi_source = \
 src/fastcgi.cpp
 
 minibar_test_source = \
-src/unittest.cpp \
-include/unittest.h
+src/test/main.cpp \
+src/test/utils.cpp \
+src/test/cgi.cpp \
+src/test/configure.cpp \
+src/test/htpasswd.cpp \
+src/test/database.cpp \
+src/test/minibar.cpp \
+src/test/router.cpp
 
 minibar_fastcgi_SOURCES = $(minibar_core_source) $(minibar_database_source) $(minibar_fastcgi_source)
 minibar_fastcgi_LDADD = -lfcgi
@@ -408,8 +421,28 @@ src/minibar_test-htpasswd.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
 src/minibar_test-sqlite3db.$(OBJEXT): src/$(am__dirstamp) \
 	src/$(DEPDIR)/$(am__dirstamp)
-src/minibar_test-unittest.$(OBJEXT): src/$(am__dirstamp) \
-	src/$(DEPDIR)/$(am__dirstamp)
+src/test/$(am__dirstamp):
+	@$(MKDIR_P) src/test
+	@: > src/test/$(am__dirstamp)
+src/test/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/test/$(DEPDIR)
+	@: > src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-main.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-utils.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-cgi.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-configure.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-htpasswd.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-database.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-minibar.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
+src/test/minibar_test-router.$(OBJEXT): src/test/$(am__dirstamp) \
+	src/test/$(DEPDIR)/$(am__dirstamp)
 minibar-test$(EXEEXT): $(minibar_test_OBJECTS) $(minibar_test_DEPENDENCIES) $(EXTRA_minibar_test_DEPENDENCIES) 
 	@rm -f minibar-test$(EXEEXT)
 	$(minibar_test_LINK) $(minibar_test_OBJECTS) $(minibar_test_LDADD) $(LIBS)
@@ -431,10 +464,17 @@ mostlyclean-compile:
 	-rm -f src/minibar_test-minibar.$(OBJEXT)
 	-rm -f src/minibar_test-router.$(OBJEXT)
 	-rm -f src/minibar_test-sqlite3db.$(OBJEXT)
-	-rm -f src/minibar_test-unittest.$(OBJEXT)
 	-rm -f src/minibar_test-utils.$(OBJEXT)
 	-rm -f src/router.$(OBJEXT)
 	-rm -f src/sqlite3db.$(OBJEXT)
+	-rm -f src/test/minibar_test-cgi.$(OBJEXT)
+	-rm -f src/test/minibar_test-configure.$(OBJEXT)
+	-rm -f src/test/minibar_test-database.$(OBJEXT)
+	-rm -f src/test/minibar_test-htpasswd.$(OBJEXT)
+	-rm -f src/test/minibar_test-main.$(OBJEXT)
+	-rm -f src/test/minibar_test-minibar.$(OBJEXT)
+	-rm -f src/test/minibar_test-router.$(OBJEXT)
+	-rm -f src/test/minibar_test-utils.$(OBJEXT)
 	-rm -f src/utils.$(OBJEXT)
 
 distclean-compile:
@@ -455,11 +495,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/minibar_test-minibar.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/minibar_test-router.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/minibar_test-sqlite3db.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/minibar_test-unittest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/minibar_test-utils.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/router.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/sqlite3db.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/$(DEPDIR)/utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-cgi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-configure.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-database.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-htpasswd.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-minibar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-router.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/test/$(DEPDIR)/minibar_test-utils.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -603,19 +650,117 @@ src/minibar_test-sqlite3db.obj: src/sqlite3db.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/minibar_test-sqlite3db.obj `if test -f 'src/sqlite3db.cpp'; then $(CYGPATH_W) 'src/sqlite3db.cpp'; else $(CYGPATH_W) '$(srcdir)/src/sqlite3db.cpp'; fi`
 
-src/minibar_test-unittest.o: src/unittest.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/minibar_test-unittest.o -MD -MP -MF src/$(DEPDIR)/minibar_test-unittest.Tpo -c -o src/minibar_test-unittest.o `test -f 'src/unittest.cpp' || echo '$(srcdir)/'`src/unittest.cpp
-@am__fastdepCXX_TRUE@	$(am__mv) src/$(DEPDIR)/minibar_test-unittest.Tpo src/$(DEPDIR)/minibar_test-unittest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/unittest.cpp' object='src/minibar_test-unittest.o' libtool=no @AMDEPBACKSLASH@
+src/test/minibar_test-main.o: src/test/main.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-main.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-main.Tpo -c -o src/test/minibar_test-main.o `test -f 'src/test/main.cpp' || echo '$(srcdir)/'`src/test/main.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-main.Tpo src/test/$(DEPDIR)/minibar_test-main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/main.cpp' object='src/test/minibar_test-main.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/minibar_test-unittest.o `test -f 'src/unittest.cpp' || echo '$(srcdir)/'`src/unittest.cpp
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-main.o `test -f 'src/test/main.cpp' || echo '$(srcdir)/'`src/test/main.cpp
 
-src/minibar_test-unittest.obj: src/unittest.cpp
-@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/minibar_test-unittest.obj -MD -MP -MF src/$(DEPDIR)/minibar_test-unittest.Tpo -c -o src/minibar_test-unittest.obj `if test -f 'src/unittest.cpp'; then $(CYGPATH_W) 'src/unittest.cpp'; else $(CYGPATH_W) '$(srcdir)/src/unittest.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(am__mv) src/$(DEPDIR)/minibar_test-unittest.Tpo src/$(DEPDIR)/minibar_test-unittest.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/unittest.cpp' object='src/minibar_test-unittest.obj' libtool=no @AMDEPBACKSLASH@
+src/test/minibar_test-main.obj: src/test/main.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-main.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-main.Tpo -c -o src/test/minibar_test-main.obj `if test -f 'src/test/main.cpp'; then $(CYGPATH_W) 'src/test/main.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/main.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-main.Tpo src/test/$(DEPDIR)/minibar_test-main.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/main.cpp' object='src/test/minibar_test-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/minibar_test-unittest.obj `if test -f 'src/unittest.cpp'; then $(CYGPATH_W) 'src/unittest.cpp'; else $(CYGPATH_W) '$(srcdir)/src/unittest.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-main.obj `if test -f 'src/test/main.cpp'; then $(CYGPATH_W) 'src/test/main.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/main.cpp'; fi`
+
+src/test/minibar_test-utils.o: src/test/utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-utils.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-utils.Tpo -c -o src/test/minibar_test-utils.o `test -f 'src/test/utils.cpp' || echo '$(srcdir)/'`src/test/utils.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-utils.Tpo src/test/$(DEPDIR)/minibar_test-utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/utils.cpp' object='src/test/minibar_test-utils.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-utils.o `test -f 'src/test/utils.cpp' || echo '$(srcdir)/'`src/test/utils.cpp
+
+src/test/minibar_test-utils.obj: src/test/utils.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-utils.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-utils.Tpo -c -o src/test/minibar_test-utils.obj `if test -f 'src/test/utils.cpp'; then $(CYGPATH_W) 'src/test/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/utils.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-utils.Tpo src/test/$(DEPDIR)/minibar_test-utils.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/utils.cpp' object='src/test/minibar_test-utils.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-utils.obj `if test -f 'src/test/utils.cpp'; then $(CYGPATH_W) 'src/test/utils.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/utils.cpp'; fi`
+
+src/test/minibar_test-cgi.o: src/test/cgi.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-cgi.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-cgi.Tpo -c -o src/test/minibar_test-cgi.o `test -f 'src/test/cgi.cpp' || echo '$(srcdir)/'`src/test/cgi.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-cgi.Tpo src/test/$(DEPDIR)/minibar_test-cgi.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/cgi.cpp' object='src/test/minibar_test-cgi.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-cgi.o `test -f 'src/test/cgi.cpp' || echo '$(srcdir)/'`src/test/cgi.cpp
+
+src/test/minibar_test-cgi.obj: src/test/cgi.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-cgi.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-cgi.Tpo -c -o src/test/minibar_test-cgi.obj `if test -f 'src/test/cgi.cpp'; then $(CYGPATH_W) 'src/test/cgi.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/cgi.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-cgi.Tpo src/test/$(DEPDIR)/minibar_test-cgi.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/cgi.cpp' object='src/test/minibar_test-cgi.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-cgi.obj `if test -f 'src/test/cgi.cpp'; then $(CYGPATH_W) 'src/test/cgi.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/cgi.cpp'; fi`
+
+src/test/minibar_test-configure.o: src/test/configure.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-configure.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-configure.Tpo -c -o src/test/minibar_test-configure.o `test -f 'src/test/configure.cpp' || echo '$(srcdir)/'`src/test/configure.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-configure.Tpo src/test/$(DEPDIR)/minibar_test-configure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/configure.cpp' object='src/test/minibar_test-configure.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-configure.o `test -f 'src/test/configure.cpp' || echo '$(srcdir)/'`src/test/configure.cpp
+
+src/test/minibar_test-configure.obj: src/test/configure.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-configure.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-configure.Tpo -c -o src/test/minibar_test-configure.obj `if test -f 'src/test/configure.cpp'; then $(CYGPATH_W) 'src/test/configure.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/configure.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-configure.Tpo src/test/$(DEPDIR)/minibar_test-configure.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/configure.cpp' object='src/test/minibar_test-configure.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-configure.obj `if test -f 'src/test/configure.cpp'; then $(CYGPATH_W) 'src/test/configure.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/configure.cpp'; fi`
+
+src/test/minibar_test-htpasswd.o: src/test/htpasswd.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-htpasswd.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-htpasswd.Tpo -c -o src/test/minibar_test-htpasswd.o `test -f 'src/test/htpasswd.cpp' || echo '$(srcdir)/'`src/test/htpasswd.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-htpasswd.Tpo src/test/$(DEPDIR)/minibar_test-htpasswd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/htpasswd.cpp' object='src/test/minibar_test-htpasswd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-htpasswd.o `test -f 'src/test/htpasswd.cpp' || echo '$(srcdir)/'`src/test/htpasswd.cpp
+
+src/test/minibar_test-htpasswd.obj: src/test/htpasswd.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-htpasswd.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-htpasswd.Tpo -c -o src/test/minibar_test-htpasswd.obj `if test -f 'src/test/htpasswd.cpp'; then $(CYGPATH_W) 'src/test/htpasswd.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/htpasswd.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-htpasswd.Tpo src/test/$(DEPDIR)/minibar_test-htpasswd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/htpasswd.cpp' object='src/test/minibar_test-htpasswd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-htpasswd.obj `if test -f 'src/test/htpasswd.cpp'; then $(CYGPATH_W) 'src/test/htpasswd.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/htpasswd.cpp'; fi`
+
+src/test/minibar_test-database.o: src/test/database.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-database.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-database.Tpo -c -o src/test/minibar_test-database.o `test -f 'src/test/database.cpp' || echo '$(srcdir)/'`src/test/database.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-database.Tpo src/test/$(DEPDIR)/minibar_test-database.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/database.cpp' object='src/test/minibar_test-database.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-database.o `test -f 'src/test/database.cpp' || echo '$(srcdir)/'`src/test/database.cpp
+
+src/test/minibar_test-database.obj: src/test/database.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-database.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-database.Tpo -c -o src/test/minibar_test-database.obj `if test -f 'src/test/database.cpp'; then $(CYGPATH_W) 'src/test/database.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/database.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-database.Tpo src/test/$(DEPDIR)/minibar_test-database.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/database.cpp' object='src/test/minibar_test-database.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-database.obj `if test -f 'src/test/database.cpp'; then $(CYGPATH_W) 'src/test/database.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/database.cpp'; fi`
+
+src/test/minibar_test-minibar.o: src/test/minibar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-minibar.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-minibar.Tpo -c -o src/test/minibar_test-minibar.o `test -f 'src/test/minibar.cpp' || echo '$(srcdir)/'`src/test/minibar.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-minibar.Tpo src/test/$(DEPDIR)/minibar_test-minibar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/minibar.cpp' object='src/test/minibar_test-minibar.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-minibar.o `test -f 'src/test/minibar.cpp' || echo '$(srcdir)/'`src/test/minibar.cpp
+
+src/test/minibar_test-minibar.obj: src/test/minibar.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-minibar.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-minibar.Tpo -c -o src/test/minibar_test-minibar.obj `if test -f 'src/test/minibar.cpp'; then $(CYGPATH_W) 'src/test/minibar.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/minibar.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-minibar.Tpo src/test/$(DEPDIR)/minibar_test-minibar.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/minibar.cpp' object='src/test/minibar_test-minibar.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-minibar.obj `if test -f 'src/test/minibar.cpp'; then $(CYGPATH_W) 'src/test/minibar.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/minibar.cpp'; fi`
+
+src/test/minibar_test-router.o: src/test/router.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-router.o -MD -MP -MF src/test/$(DEPDIR)/minibar_test-router.Tpo -c -o src/test/minibar_test-router.o `test -f 'src/test/router.cpp' || echo '$(srcdir)/'`src/test/router.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-router.Tpo src/test/$(DEPDIR)/minibar_test-router.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/router.cpp' object='src/test/minibar_test-router.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-router.o `test -f 'src/test/router.cpp' || echo '$(srcdir)/'`src/test/router.cpp
+
+src/test/minibar_test-router.obj: src/test/router.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -MT src/test/minibar_test-router.obj -MD -MP -MF src/test/$(DEPDIR)/minibar_test-router.Tpo -c -o src/test/minibar_test-router.obj `if test -f 'src/test/router.cpp'; then $(CYGPATH_W) 'src/test/router.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/router.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) src/test/$(DEPDIR)/minibar_test-router.Tpo src/test/$(DEPDIR)/minibar_test-router.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='src/test/router.cpp' object='src/test/minibar_test-router.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(minibar_test_CXXFLAGS) $(CXXFLAGS) -c -o src/test/minibar_test-router.obj `if test -f 'src/test/router.cpp'; then $(CYGPATH_W) 'src/test/router.cpp'; else $(CYGPATH_W) '$(srcdir)/src/test/router.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \
@@ -866,6 +1011,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f src/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/$(am__dirstamp)
+	-rm -f src/test/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/test/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -877,7 +1024,7 @@ clean-am: clean-generic clean-local clean-noinstPROGRAMS \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf src/$(DEPDIR)
+	-rm -rf src/$(DEPDIR) src/test/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -925,7 +1072,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf src/$(DEPDIR)
+	-rm -rf src/$(DEPDIR) src/test/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

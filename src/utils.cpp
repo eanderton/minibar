@@ -128,31 +128,3 @@ void ParseHex(const char ch,int* accumulator){
 }
 
 }
-
-#ifdef UNITTEST
-#include "gtest/gtest.h"
-
-using namespace minibar;
-
-bool tokensEqual(minibar::TokenSet& a,minibar::TokenSet& b){
-    if(a.size() != b.size()) return false;
-
-    auto ai = a.begin();
-    auto bi = b.begin();
-    while(ai != a.end()){
-        if( ai->compare(*bi) != 0) return false;
-        ai++;
-        bi++;
-    }
-
-    return true;
-}
-
-TEST(MinibarUtils,Unittest){
-    TokenSet test = tokenize("foo/bar/baz","/");
-    TokenSet test2 = {"foo","bar","baz"};
-
-    ASSERT_TRUE(tokensEqual(test,test2));
-}
-
-#endif
